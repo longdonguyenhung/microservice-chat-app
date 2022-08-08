@@ -1,6 +1,6 @@
 "# microservice-chat-app" 
 
-![alt text](./chat-app diagram.png)
+![alt text](./chat-app-diagram.png)
 
 
 I. Macro architecture
