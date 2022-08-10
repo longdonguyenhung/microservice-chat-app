@@ -53,7 +53,117 @@ II. Data flow
 III. Requirement cho từng thành phần 
 Phase 1:
 	1. Gateway websocket
-		Functional requirement: gửi thông tin giữa hai người, kiểm tra kết nối, có thể request tới session service. Tạo endpoint tới 
+		Functional requirement: 
+			- gửi thông tin giữa hai người và một nhóm
+			- kiểm tra kết nối
 		Non-functional requirement: 
+	
+	2. Session service
+		Functional requirement:
+			- Truy vấn kết nối bằng id user hoặc tên user theo thời gian 
+			- Chuyển tin nhắn tới database của roomservice 
+			
+		Nonfunctional requirement
+			- Có thể chứa được 5 7 kết nối cùng một lúc
+			
+	3. Room service:
+		Functional requirement:
+			- Tạo phòng 
+			- Rời khỏi phòng
+			- Gia nhập phòng
+			
+		Nonfunctional requirement
+
+	4. Notification service:
+		Functional requirement:
+			-Thông báo tới mail người dùng hoặc điện thoại người dùng khi có chat mới.
+		
+		Nonfunctional requirement:
+		
+	5. Authentication service:
+		Functional requirement:
+			- Xác thực thông tin người dùng và generate JWT token 
+			
+		Nonfunctional requirement:
+			
+	6. Gateway API
+			- Direct request tới đúng service
+			
+	7. Interservice Communication(giao tiếp giữa các service)
+		Đang làm : point-to-point communication
+		Phát triển: message queue communication
+			
+IV. API cho từng thành phần 
+	1. Gateway Socket
+		- receiveConnection : 
+			Request
+				+ username or userId 
+				+ JWT (authentication) - if have
+			Response
+				Success: status 200
+				Fail: status 400
+			
+		- receiveMessage: 
+			Request
+				+ username
+				+ room-chat
+				+ message content 
+			Response
+				Success/Fail : status
+		
+	2. Session service
+		- receiveMessage:
+			Request
+				+ username or userId
+				+ room-chat
+				+ JWT
+			Response
+			
+	3. Room service
+		- userMapping: 
+			Request
+				+ room-chat
+			Response
+		
+		- createRoom: 
+			Request
+				+ room-chat
+				+ owner
+				+ member
+			Response
+			
+		- joinRoom
+			Request
+				+ room-chat
+				+ userId
+				+ member
+			Response
+			
+		- deleteRoom
+			Request
+				+ room-chat
+			Response
+		
+		- leaveRoom
+			Request
+				+ room-chat
+				+ user 
+			Response
+	
+	4. Notification service
+		- sendNotification:
+			Request
+				+ room-chat
+				+ user
+				+ content
+			Response
+			
+	5. Authentication service
+		- authenUser:
+			Request
+				+ username
+				+ password
+
+
 
 
