@@ -107,7 +107,9 @@ const deleteId = (id) => {
 }
 
 export const receiveMessage = (req, res, next) => {
+    //console.log(req.body.user);
     for (let userId of req.body.user) {
+        //console.log(userData);
         if(userData.has(userId)){
             for (const connectionId of userData.get(userId)){
                 const connection = clientMetadata.get(connectionId)._request;

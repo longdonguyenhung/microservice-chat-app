@@ -13,6 +13,7 @@ export const groupMapping = async (req, res, next) => {
         if(!document) {
             return res.status(500).send(err)
         }
+        console.log(res);
         return res.status(200).json(document);
     });
 }

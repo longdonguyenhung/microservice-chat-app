@@ -2,13 +2,13 @@ import Users from "../model/user.js";
 import Session from "../model/session.js";
 import fetch from "node-fetch";
 
-const userMappingServiceURL = "localhost:8087/get_user";
+const userMappingServiceURL = "http://localhost:8084/group";
 
 export const userMapping = async (req, res, next) => {
 
     const update = {
         type: "update",
-        topic: req.body.topic
+        topic: req.query.topic
     }
 
     const updateConnection = {
@@ -16,68 +16,78 @@ export const userMapping = async (req, res, next) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(update)
     }
 
-    fetch(userMappingServiceURL,updateConnection).then((users) => {
-        users.forEach((user) => {
-            const query = Session.findOne().select('connection').populate({
-                path: 'member',
-                match: {$eq: user},
-            }).exec((err, document) => {
-                if(err){
-                    console.log(error)
-                    return res.status(400).send(error);
-                } 
-                const data = {
-                    topic: req.body.topic,
-                    content: req.body.content
-                }
 
-                const sendingMessage = {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(data)
-                }
+    fetch(userMappingServiceURL + "?" + new URLSearchParams({topic: "new"}),updateConnection).then((response) => {
+        response.json().then((data) => {
+            
+            data.member.forEach(async (user) => {
+                const userId = await Users.find({username: user.username}).exec();
+                console.log(userId.username);
+                const query = Session.findOne({member: userId}).populate('member').exec((err, document) => {
+                    if(err){
+                        console.log(error)
+                        return res.status(400).send(error);
+                    } 
+                    
+                    //console.log(document);
 
-                console.log(document);
+                    if(document && document.member){
+                        document.connection.forEach((connection) => {
+                            const sendingData = {
+                                topic: req.query.topic,
+                                content: req.body.content,
+                                user: [document.member.username]
+                            }
+            
+                            const sendingMessage = {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify(sendingData)
+                            }
 
-                //fetch(req.body.address, sendingMessage).then((respond) => console.log(respond));
-            })
+                                                
+                            console.log(sendingMessage);
+
+                            fetch("http://" + connection + "/get_user", sendingMessage).then((respond) => {}, (err) => {});
+                        })}
         });
+            return res.status(200);
+        })
     })
-    return res.status(200).send("sending success");
+})
 }
 
+
+//this function is add new connection, however if the address is the same it must eliminate the old one and add the new connection
+//when query it must query with time
 export const updateConnection = async (req,res, next) => {
     const user = req.body.user;
     const addressId = req.body.address;
-    const data = Session.findOne().populate({
-        path: 'member',
-        match: {$eq: user},
-    }).exec((err, data) => {
-        if(err)
-            return res.status(200).send(err);
-        else {
-            console.log(data);
-            if(data !== undefined){
-                data.connection.push(addressId);
-                data.save();
-                return res.status(400);
-            } else {
-                const newUser = Users.create({username: user}).then(() => {
-                    const session = Session.create({connection: [addressId], member: newUser});
-                }).then( () => {
-                    console.log(newUser);
-                    console.log(session);
-                    return res.status(400);
-                })
-                
+    const userId = await Users.findOne({username: user}).exec();
+    if(!userId){
+        Users.create({username: user}).then((user) => {
+            Session.create({connection: [addressId], member: user}).then((session) => {
+                return res.status(200).json(session);
+            })
+        })
+    } else {
+        Session.findOne({member:userId}, ).populate('member').exec((err, data) => {
+            if(err)
+                return res.status(200).send(err);
+            else {
+                if(data !== null){
+                    data.connection.push(addressId);
+                    data.save();
+                    return res.status(400).json(data);
+                } else {
+                    Session.create({member:userId, connection: [addressId]}).then((err,data) =>{
+                    return res.status(400).json(data);});
+                }
             }
-        }
-    });   
-
-    
+        });   
+    }
 }
