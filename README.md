@@ -1,3 +1,7 @@
+Chat-App Use Case Diagram
+
+![alt text](./Chat-App-Use-Case.drawio.png)
+
 "# microservice-chat-app" 
 
 ![alt text](./chat-app-diagram.png)
