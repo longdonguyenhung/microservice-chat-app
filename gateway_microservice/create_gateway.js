@@ -3,22 +3,32 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { uuid } from 'uuidv4';
 import pkg from 'query-string';
 import { query } from "express";
+import fetch from "node-fetch";
 const  querystring  = pkg;
 
 var clientMetadata = new Map();
 var userData = new Map();
-const userMappingServiceURL = "localhost:8083/session";
-const serviceAddress = "localhost:8081";
-//in here we need to first exchange the chat room that the connection and then we would know what client should we send it too 
-//this code need to improve, to test when the client is disconnect, we still need to handle lost 
+const userMappingServiceURL = process.env.SESSION_URL ;
+const serviceAddress = process.env.URL;
 
+/*
+    Author: Long Do Nguyen Hung
+    Created: 18/8/2022
+    Function: createConnection
+    Parameter: None
+    Description: This function create a websocket connection to the client and send infomation about the connection to session service
+    Included Function: addUserData, deleteId
+    Step: 
+        - First it initiated a websocket endpoint 
+        - Then the user will create an HTTP request to this endpoint for conenction with information of userID
+        - The connection is store in the hashmap using an userId as key 
+        - Then this function will create an HTTP request to session service to update the information 
+        - This function will listen when user send an message to forward to session message
+        - It also ping the connection and delete if it not alive
+*/
 export const createConnection = () => {
     try{
-        //this will be reconfig when we run this as a microservice
-        //this microservice will have two thing, first it create the connection and maintain the connection
-        //second it will send the data to the session server for further process
-        //so it will need the data and the information of the user
-        //it will contain in three field: userId, topic, chat information
+        
         var webserverConnection = new WebSocketServer({port: 8082});
         webserverConnection.on('connection', (request, incomingRequest) => {
             const id = uuid();
@@ -37,17 +47,17 @@ export const createConnection = () => {
                 body: JSON.stringify(update)
             }
 
-            //fetch(userMappingServiceURL,updateConnection);
+            fetch(userMappingServiceURL + "/session",updateConnection);
             clientMetadata.set(id, {_request: request, _user: userId});
             //console.log(clientMetadata);
             addUserData(userId, id);
 
-            request.on('message', (message) => {
-                var data = JSON.parse(message.toString());
-
+            request.on('message', (data) => {
+                const message = JSON.parse(data);
+                
                 const postData = { 
                     type: "data",
-                    content: data.content
+                    content: message.content
                 }
 
                 const messageUpload = {
@@ -58,7 +68,7 @@ export const createConnection = () => {
                       body: JSON.stringify(postData)
                 }
                 
-                fetch(userMappingServiceURL, messageUpload);
+                fetch(userMappingServiceURL+ "/message" + "?" + new URLSearchParams({topicId: message.topicId}), messageUpload);
             });
         });
 
@@ -84,6 +94,16 @@ export const createConnection = () => {
     }
 }
 
+/*
+    Author: Long Do Nguyen Hung
+    Created: 18/8/2022
+    Function: addUserData
+    Parameter: userId: String, id: String
+    Description: This function store the connection of the client to the hashmap
+    Included Function: None
+    Step: 
+        - Get the id of the connection and store in a hashmap with key as userId
+*/
 const addUserData = (userId, id) => {
     if(userData.has(userId)){
         const connection = userData.get(userId);
@@ -95,6 +115,16 @@ const addUserData = (userId, id) => {
     }
 }
 
+/*
+    Author: Long Do Nguyen Hung
+    Created: 18/8/2022
+    Function: addUserData
+    Parameter: id: String
+    Description: This function store the connection of the client to the hashmap
+    Included Function: None
+    Step: 
+        - Find the connection in userId and delete using id 
+*/
 const deleteId = (id) => {
     if(clientMetadata.has(id)){
         const user = clientMetadata.get(id)._user;
@@ -106,6 +136,18 @@ const deleteId = (id) => {
     }
 }
 
+/*
+    Author: Long Do Nguyen Hung
+    Created: 18/8/2022
+    Function: receiveMessage
+    Parameter: None
+    Description: When receive the message from session service it transfer the data to correspond client
+    Included Function: 
+    Step: 
+        - First it find the connection using the userId 
+        - It send the message through the websocket
+        - It also delete the connection if the connection is not alive anymore
+*/
 export const receiveMessage = (req, res, next) => {
     //console.log(req.body.user);
     for (let userId of req.body.user) {

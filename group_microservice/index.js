@@ -27,10 +27,10 @@ const server = http.createServer(app)
 //DB config
 const uri = "mongodb://localhost:27017/test"; //this would be a separate database, at least for development mode, it will be switch to another database 
 // in different cluster later
+const connString = process.env.MONGODB_CONNSTRING || uri;
 
-
-try {
-    await mongoose.connect(uri);
+try {    
+    const mongoConnection = await mongoose.connect(connString);
     console.log("Connected with Mongodb")
   } catch (error) {
     console.log(error);

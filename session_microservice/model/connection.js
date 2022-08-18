@@ -21,22 +21,12 @@ import mongoose from "mongoose";
     Also in gateway API we check and terminate the connection if it not respond 
 */
 const { Schema } = mongoose;
-const sessionSchema = new mongoose.Schema({
+const connectionSchema = new mongoose.Schema({
 
-    connection: [{
-        type: Schema.ObjectId,
-        ref: 'Connection',
-        index: true, 
-    }],     
+    address: String,
     
-    member: {
-        type: Schema.ObjectId,
-        ref: 'UserSession',
-        required: 'Member is required',
-        index: true, 
-    }         
 }, { timestamps: true })
 
-const Session = mongoose.model('session', sessionSchema);
+const Connection = mongoose.model('Connection', connectionSchema);
 
-export default Session;
+export default Connection;

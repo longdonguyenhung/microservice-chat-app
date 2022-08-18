@@ -3,7 +3,17 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 const groupSchema = new mongoose.Schema({
     
-    topic: String,
+    title: String,
+
+    descrition: String,
+
+    owner: { // _id of the owner user.
+        type: Schema.ObjectId,
+        ref: 'User',
+        required: 'Owner is required',
+        index: true,      
+
+    },    
 
     member: [{
         type: Schema.ObjectId,
@@ -14,6 +24,6 @@ const groupSchema = new mongoose.Schema({
     ]
 }, { timestamps: true })
 
-const Group = mongoose.model('group', groupSchema);
+const Group = mongoose.model('Group', groupSchema);
 
 export default Group;
