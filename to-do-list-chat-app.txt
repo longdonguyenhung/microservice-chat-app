@@ -88,3 +88,9 @@ New feature
 Sprint planning 
 
 Contact on message, Create a ticket on 
+
+18/8/2022
+	- Deploy service on Heroku
+	- Create test for the old code
+	- Unify the API for the code 
+	- Research to use board better

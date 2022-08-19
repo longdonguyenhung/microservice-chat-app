@@ -11,71 +11,125 @@ var userData = new Map();
 const userMappingServiceURL = process.env.SESSION_URL ;
 const serviceAddress = process.env.URL;
 
-/*
-    Author: Long Do Nguyen Hung
-    Created: 18/8/2022
-    Function: createConnection
-    Parameter: None
-    Description: This function create a websocket connection to the client and send infomation about the connection to session service
-    Included Function: addUserData, deleteId
-    Step: 
-        - First it initiated a websocket endpoint 
-        - Then the user will create an HTTP request to this endpoint for conenction with information of userID
-        - The connection is store in the hashmap using an userId as key 
-        - Then this function will create an HTTP request to session service to update the information 
-        - This function will listen when user send an message to forward to session message
-        - It also ping the connection and delete if it not alive
+/** 
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @function
+ * @description This function is not really a function it is an endpoint for the connection, it will be tested in integration testing
 */
 export const createConnection = () => {
     try{
-        
         var webserverConnection = new WebSocketServer({port: 8082});
-        webserverConnection.on('connection', (request, incomingRequest) => {
-            const id = uuid();
-            const userId = querystring.parse(incomingRequest.url.slice(1)).user;
-            const update = {
-                type: "update",
-                user: userId,
-                address: serviceAddress
-            }
+        acceptWebsocketConnection(webserverConnection);
+        pongMessengerConnection(webserverConnection);
+        closeConnection(webserverConnection);
+    } catch(error) {
+        console.log(error);
+    }
+}
 
-            const updateConnection = {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(update)
-            }
+/**
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @function
+ * @description establish a connection when receive a request from client. Send a request to update the connection in session service. This should be test on integration testing 
+ * @param {WebSocket.Server<WebSocket.WebSocket>} webserverConnection
+*/ 
+const acceptWebsocketConnection = (webServerConnection) => {
+    webserverConnection.on('connection', (request, incomingRequest) => {
+        const id = uuid();
+        
+        addClientMetadata(userId, id, request);
+        addUserData(userId, id);
 
-            fetch(userMappingServiceURL + "/session",updateConnection);
-            clientMetadata.set(id, {_request: request, _user: userId});
-            //console.log(clientMetadata);
-            addUserData(userId, id);
+        const updateConnection = createUpdateSessionService(incomingRequest);
+        fetch(userMappingServiceURL + "/session",updateConnection);
 
-            request.on('message', (data) => {
-                const message = JSON.parse(data);
-                
-                const postData = { 
-                    type: "data",
-                    content: message.content
-                }
-
-                const messageUpload = {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify(postData)
-                }
-                
-                fetch(userMappingServiceURL+ "/message" + "?" + new URLSearchParams({topicId: message.topicId}), messageUpload);
-            });
+        request.on('message', (data) => {
+            const messageUpload = sendMessageSessionService(data);
+            fetch(userMappingServiceURL+ "/message" + "?" + new URLSearchParams({topicId: message.topicId}), messageUpload);
         });
+    });
+};
 
+/**
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @description create a request to session service
+ * @param {http.IncomingMessage} webserverConnection
+ * @returns {<CustomType>} 
+*/ 
+const createUpdateSessionService = (incomingRequest) => {
+    const userId = querystring.parse(incomingRequest.url.slice(1)).user;
+    const update = {
+        user: userId,
+        address: serviceAddress
+    }
+
+    const updateConnection = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(update)
+    }
+    return updateConnection;
+};
+
+/**
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @description add an key value pair of id to request and userId
+ * @function 
+ * @param {String} userId
+ * @param {String} id
+ * @param {WebSocket.WebSocket} request
+*/ 
+const addClientMetadata = (userId, id, request ) => {
+    clientMetadata.set(id, {_request: request, _user: userId});
+};
+
+/**
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @description create an request to session service when receive an message
+ * @function
+ * @param {WebSocket.RawData} data
+ * @returns {<CustomType>}
+*/ 
+const sendMessageSessionService = (data) => {
+    const message = JSON.parse(data);
+                
+    const postData = { 
+        type: "data",
+        content: message.content
+    }
+
+    const messageUpload = {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify(postData)
+    }
+
+    return messageUpload;
+};
+
+/**
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @description pong a answer a ping, to keep the connection alive
+ * @function
+ * @param {WebSocket.Server<WebSocket.WebSocket>} webserverConnection
+*/ 
+const pongMessengerConnection = (webserverConnection) => {
     webserverConnection.on('connection', function connection(ws) {
         ws.on('pong', () => ws.isAlive=true);
-        });
-        
+    });
+};
+
+/**
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com> 
+ * @description ping to a websocket connection, if the connection not answer after a period of time, terminate it
+ * @function
+ * @param {WebSocket.Server<WebSocket.WebSocket>} webserverConnection
+*/ 
+const closeConnection = (webserverConnection) => {
     const interval = setInterval(function ping() {
     webserverConnection.clients.forEach(function each(ws) {
         if (ws.isAlive === false) return ws.terminate();
@@ -88,22 +142,16 @@ export const createConnection = () => {
     webserverConnection.on('close', function close() {
         clearInterval(interval);
     });
+};
 
-    } catch(error) {
-        console.log(error);
-    }
-}
 
-/*
-    Author: Long Do Nguyen Hung
-    Created: 18/8/2022
-    Function: addUserData
-    Parameter: userId: String, id: String
-    Description: This function store the connection of the client to the hashmap
-    Included Function: None
-    Step: 
-        - Get the id of the connection and store in a hashmap with key as userId
-*/
+
+/**
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com> 
+ * @description
+ * @function
+ * @param {WebSocket.Server<WebSocket.WebSocket>} webserverConnection
+*/ 
 const addUserData = (userId, id) => {
     if(userData.has(userId)){
         const connection = userData.get(userId);
@@ -115,16 +163,12 @@ const addUserData = (userId, id) => {
     }
 }
 
-/*
-    Author: Long Do Nguyen Hung
-    Created: 18/8/2022
-    Function: addUserData
-    Parameter: id: String
-    Description: This function store the connection of the client to the hashmap
-    Included Function: None
-    Step: 
-        - Find the connection in userId and delete using id 
-*/
+/**
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com> 
+ * @description delete the connection after the user go offline 
+ * @function
+ * @param {WebSocket.Server<WebSocket.WebSocket>} webserverConnection
+*/ 
 const deleteId = (id) => {
     if(clientMetadata.has(id)){
         const user = clientMetadata.get(id)._user;
@@ -136,24 +180,15 @@ const deleteId = (id) => {
     }
 }
 
-/*
-    Author: Long Do Nguyen Hung
-    Created: 18/8/2022
-    Function: receiveMessage
-    Parameter: None
-    Description: When receive the message from session service it transfer the data to correspond client
-    Included Function: 
-    Step: 
-        - First it find the connection using the userId 
-        - It send the message through the websocket
-        - It also delete the connection if the connection is not alive anymore
-*/
+/**
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com> 
+ * @description this is and endpoint, it receive the message from session microservice and send to the correspond connection, if a connection go off, it will delete that connection
+ * @function
+*/ 
 export const receiveMessage = (req, res, next) => {
-    //console.log(req.body.user);
     for (let userId of req.body.user) {
-        //console.log(userData);
         if(userData.has(userId)){
-            for (const connectionId of userData.get(userId)){
+            for (const connectionId of userData.get(userId)){.
                 const connection = clientMetadata.get(connectionId)._request;
                 if (connection.readyState === WebSocket.OPEN){
                     connection.send(req.body.content, { binary: true }, (error) => {

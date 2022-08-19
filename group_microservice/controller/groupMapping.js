@@ -3,16 +3,11 @@ import Users from "../model/user.js";
 import { EventEmitter } from 'node:events';
 import isUserIdExist from "../middleware/userValidation.js";
 
-/*
-    Author: Long Do Nguyen Hung
-    Created: 18/8/2022
-    Function: groupMapping
-    Parameter: None
-    Description: return userID in the topic
-    Included Function: 
-    Step: 
-        - First it find all the member or userId by the topic id
-        - Send all the userId the the session service
+
+/** 
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @function
+ * @description This is an endpoint, it return all the member in the topic 
 */
 export const groupMapping = async (req, res, next) => {
     const topicId = req.query.topicId;
@@ -28,16 +23,10 @@ export const groupMapping = async (req, res, next) => {
     });
 }
 
-/*
-    Author: Long Do Nguyen Hung
-    Created: 18/8/2022
-    Function: groupForming
-    Parameter: None
-    Description: Create a chat room using userId. This function is only use for development not production 
-    Included Function: 
-    Step: 
-        - First it will find if the user is exist, if not it create the new user and store in the database
-        - When all the user is created it emit and event to trigger the group creating, the trigger is the variable name 'counter'
+/** 
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @function
+ * @description create a group, if a user is not existed, it create a user and add to a group, this function is for developing, not tested
 */
 export const groupForming = async (req, res, next) => {
     const members = req.body.member;
@@ -121,16 +110,10 @@ export const groupForming = async (req, res, next) => {
         }
 }
 
-/*
-    Author: Long Do Nguyen Hung
-    Created: 18/8/2022
-    Function: addUserToChat
-    Parameter: None
-    Description: It find the correspond chat using userId and add the user to the group
-    Included Function: 
-    Step: 
-        - First it find the group using the groupId, the groupId
-        - It then push a new userId into the member of the group
+/** 
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @function
+ * @description This is an endpoint, it find a group chat and add user to it 
 */
 export const addUserToChat = (req,res,next) => {
     const userId = req.body.userId;
@@ -151,16 +134,10 @@ export const addUserToChat = (req,res,next) => {
     })
 }
 
-/*
-    Author: Long Do Nguyen Hung
-    Created: 18/8/2022
-    Function: createGroup
-    Parameter: None
-    Description: It create a new chat group with userId as an array
-    Included Function: 
-    Step: 
-        - First it find all the user, if the user have role "owner", it wil be store in the variable with the same name
-        - Then it store in the correspond field
+/** 
+ * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
+ * @function
+ * @description This is an endpoint, it create new group
 */
 export const createGroup = async (req,res,next) => {
     //so we need to send the id of the user 
