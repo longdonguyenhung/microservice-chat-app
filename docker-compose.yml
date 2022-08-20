@@ -1,0 +1,47 @@
+version: "3"
+services:
+  websocket-gateway:
+    image: "websocket-gateway-image"
+    ports: 
+      - "8081:8081"
+      - "8082:8082"
+    volumes: 
+      - ./gateway_microservice:/app
+    networks:
+      - chat-app-local
+    restart: always
+    environment:
+      - URL=http://websocket-gateway:8081
+      - SESSION_URL=http://session-microservice:8083
+    
+
+  group-microservice:
+    build: ./group_microservice
+    ports: 
+      - "8084:8084"
+    volumes:
+      - ./group_microservice:/app
+    environment:
+      - MONGODB_CONNSTRING=mongodb://host.docker.internal:27017/test
+    networks:
+      - chat-app-local
+    restart: always
+
+  session-microservice:
+    build: ./session_microservice
+    ports: 
+      - "8083:8083"
+    volumes: 
+      - ./session_microservice:/app
+    environment:
+      - MONGODB_CONNSTRING=mongodb://host.docker.internal:27017/test
+      - GROUP_URL=http://group-microservice:8084
+    networks:
+      - chat-app-local
+    restart: always
+
+networks:
+  chat-app-local:
+    driver: bridge
+    
+     

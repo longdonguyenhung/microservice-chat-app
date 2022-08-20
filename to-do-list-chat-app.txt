@@ -1,0 +1,90 @@
+Product Backlog
+
+Liệt kê: 
+
+Tính năng mới 
+- Push notification
+- Cloud backup
+- Status of the useryyg	gg
+
+- Profile for the user
+
+
+Bảo trì tình năng cũ
+- Real-time chat:
+	+ Session user with time
+	+ Manage connection
+	+ Unified the API by swagger
+
+- Triển khai logging cho microservice
+
+- Interservice Communicate -> chuyển qua message broker.
+
+Deploy sản phẩm
+	+ Deploy thiết lập sản phẩm trên docker
+	+ Tạo một server để mọi người có thể deploy service ở trên đó 
+	+ Tiết kiệm thời gian để cài đặt cho các service khác nhau
+
+Phương án testing 
+	+ Unit test - các chức năng mới của service sẽ được test cẩn thận 
+
+- Deploy sản phẩm, đóng gói = docker, auto deploy = jenkins - đưa lên một web serverm, thuê một webserver hết khoảng 200k/tháng	hoặc sử dụng gitlab hoặc heroku
+Build dùng docker -> jenkins -> deploy on Heroku
+
+- Viết lại diagram cho ứng dụng V, 
+
+- Bảo trì tính năng cũ 
+
+Tính năng mới:
++ push notification
++ status of the user
+
+- Testing 
+
+- Rewrite and unified the API
+
+
+16/8/2022
+Chinh sua de nhan tin duoc giua nhieu may
+
+- Update: 
+	+ Thong nhat API (co the de sau)
+- Add:
+	+ Logging system
+	+ exception handler
+	
+- New feature
+	+ Service Registry
+	+ Update from docker container to heroku deploy
+
+- Write article about what i am doing (Low-priority) - should do 
+
+17/8/2022
+
+Priority:
+	- Unified API (4 - priority) (30p) - Swagger
+	- Deployed database on the cluster - 15p (Import data, create key for people ) 
+	- Create a database service API for everyone to call from it or unified database and seperate right to each(5-P) (1h), grant permission by service, user status: read, session: read+write
+	- Deploy it on heroku for people to access (4-P) (30p)
+
+New feature
+	- push notification: diagram, API to call from database, debate about necessary architecture (requirement) 
+	
+	- Authentication Service: digram, specified the API to call from database
+	
+	- service registry: The code need to simplify and helpful for him to do the service registry - don't have enough test, (requirement)
+	
+	- logging system: diagram -> architecture, requirement
+	
+	- Status of user: 
+		+ session database (know if the user go offline) 
+		+ check user connection, ping
+		
+	- Database design for the feature
+		+ Create database for the new feature
+		+ Integration database to the old feature
+		
+	
+Sprint planning 
+
+Contact on message, Create a ticket on 

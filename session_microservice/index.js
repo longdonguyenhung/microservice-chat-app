@@ -25,10 +25,13 @@ app.use(bodyParser.urlencoded({ extended: true }))
 const server = http.createServer(app)
 
 //DB config
-const uri = "mongodb+srv://longdonguyenhung:hunglong123@cluster0.kvko1.mongodb.net/?retryWrites=true&w=majority";
+const uri = "mongodb://localhost:27017/test" || "mongodb+srv://longdonguyenhung:hunglong123@cluster0.kvko1.mongodb.net/?retryWrites=true&w=majority";
+
+const connString = process.env.MONGODB_CONNSTRING;
+console.log("update");
 
 try {
-    await mongoose.connect(uri);
+    await mongoose.connect(connString);
     console.log("Connected with Mongodb")
   } catch (error) {
     console.log(error);
