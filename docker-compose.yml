@@ -40,6 +40,51 @@ services:
       - chat-app-local
     restart: always
 
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    restart: always
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - chat-app-local
+    ports:
+      - 2181:2181
+      - 2888:2888
+      - 3888:3888
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    container_name: kafka
+    restart: always
+    networks:
+      - chat-app-local
+    ports:
+      - 9092:9092
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    container_name: kafka-ui
+    restart: always
+    networks:
+      - chat-app-local
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:29092"
+    ports:
+      - 9000:9000
+    depends_on:
+      - kafka
+
 networks:
   chat-app-local:
     driver: bridge
