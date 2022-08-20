@@ -40,6 +40,18 @@ services:
       - chat-app-local
     restart: always
 
+  notification-service:
+    container_name: notification-service
+    build:
+      context: ./notification_service
+      dockerfile: Dockerfile
+    ports:
+      - "8181:8181"
+      - "5005:5005"
+    networks:
+      - chat-app-local
+    restart: always
+
   zookeeper:
     image: wurstmeister/zookeeper:latest
     restart: always
