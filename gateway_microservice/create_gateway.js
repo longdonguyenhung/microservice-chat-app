@@ -40,6 +40,8 @@ const acceptWebsocketConnection = (webserverConnection) => {
     const id = v4();
 
     const userId = querystring.parse(incomingRequest.url.slice(1)).user;
+    console.log(userId);
+    console.log("ok");
     addClientMetadata(userId, id, request);
     addUserData(userId, id);
 
