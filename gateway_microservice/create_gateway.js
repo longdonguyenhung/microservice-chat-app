@@ -10,7 +10,7 @@ var clientMetadata = new Map();
 var userData = new Map();
 const userMappingServiceURL =
   process.env.SESSION_URL || "http://localhost:8083/";
-const serviceAddress = process.env.URL;
+const serviceAddress = process.env.URL || "example.com";
 
 /**
  * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
@@ -54,7 +54,7 @@ const acceptWebsocketConnection = (webserverConnection) => {
         userMappingServiceURL +
           "/message" +
           "?" +
-          new URLSearchParams({ topicId: message.topicId }),
+          new URLSearchParams({ topicId: "12345" /* message.topicId */ }),
         messageUpload
       );
     });
@@ -104,11 +104,12 @@ const addClientMetadata = (userId, id, request) => {
  * @returns {<CustomType>}
  */
 const sendMessageSessionService = (data) => {
-  const message = JSON.parse(data);
+  // const message = JSON.parse(data);
 
   const postData = {
     type: "data",
-    content: message.content,
+    content: data,
+    // message.content,
   };
 
   const messageUpload = {

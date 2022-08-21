@@ -103,6 +103,8 @@ const messageToWebsocket = (topicId, content, userId) => {
 export const updateConnection = async (req, res, next) => {
   const username = req.body.user;
   const address = req.body.address;
+  console.log(username);
+  console.log(address);
 
   const connection = await createNewConnection(address);
   const user = await findUser(username);
