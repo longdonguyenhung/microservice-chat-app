@@ -11,11 +11,11 @@ import {sendingDataWebsocket, createRequestQuery} from '../Util/create_request.j
 
 const userMappingServiceURL = process.env.GROUP_URL;
 
-/** 
+/**
  * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
  * @function
  * @description This is an endpoint, when it receive the userId from group_service it send the message to correspond websocket gateway
-*/
+ */
 export const userMapping = async (req, res, next) => {
     //request the data from group service
     
@@ -34,11 +34,11 @@ export const userMapping = async (req, res, next) => {
 }
 
 
-/** 
+/**
  * @author Long Do Nguyen Hung <hunglong6a1@gmail.com>
  * @function
  * @async
- * @description This function update user connection. 
+ * @description This function update user connection.
  * @param {String} address this is an endpoint, it will be tested in integration testing
  * @returns {Promise} this will return a Promise which resolve to a user or null
 */
