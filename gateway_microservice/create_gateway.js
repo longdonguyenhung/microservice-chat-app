@@ -23,6 +23,7 @@ export const createConnection = () => {
     acceptWebsocketConnection(webserverConnection);
     pongMessengerConnection(webserverConnection);
     closeConnection(webserverConnection);
+    closeServer(webserverConnection);
   } catch (error) {
     console.log(error);
   }
@@ -58,6 +59,10 @@ const acceptWebsocketConnection = (webserverConnection) => {
         messageUpload
       );
     });
+
+    setInterval(() => {
+      request.ping();
+    }, 10000);
   });
 };
 
@@ -141,18 +146,21 @@ const pongMessengerConnection = (webserverConnection) => {
  * @function
  * @param {WebSocket.Server<WebSocket.WebSocket>} webserverConnection
  */
-const closeConnection = (webserverConnection) => {
-  const interval = setInterval(function ping() {
-    webserverConnection.clients.forEach(function each(ws) {
-      if (ws.isAlive === false) return ws.terminate();
+const closeServer = (webserverConnection) => {
+  // const interval = setInterval(function ping() {
+  //   webserverConnection.clients.forEach(function each(ws) {
+  //     if (ws.isAlive === false) return ws.terminate();
 
-      ws.isAlive = false;
-      ws.ping();
-    });
-  }, 10000);
+  //     ws.isAlive = false;
+  //     ws.ping();
+  //   });
+  // }, 10000);
 
   webserverConnection.on("close", function close() {
-    clearInterval(interval);
+    // clearInterval(interval);
+    webserverConnection.clients.forEach(function each(ws) {
+      ws.terminate();
+    });
   });
 };
 
@@ -214,4 +222,13 @@ export const receiveMessage = (req, res, next) => {
     }
   }
   return res.status(200).send("message success");
+};
+
+/** @description Close client connection */
+const closeConnection = (webserverConnection) => {
+  webserverConnection.on("connection", (ws) => {
+    ws.on("close", () => {
+      console.log("Connection closed");
+    });
+  });
 };
