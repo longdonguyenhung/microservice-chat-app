@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
+const userSessionSchema = new mongoose.Schema({
     username: {//type: String
         type: String,
         index: true,
@@ -9,6 +9,6 @@ const userSchema = new mongoose.Schema({
     }
 }, {timestamps: true});
 
-const Users = mongoose.model("UserSession", userSchema);
+const UserSession = mongoose.model("UserSession", userSessionSchema);
 
-export default Users;
+export default UserSession;
