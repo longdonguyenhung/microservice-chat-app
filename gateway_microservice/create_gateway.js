@@ -224,11 +224,29 @@ export const receiveMessage = (req, res, next) => {
   return res.status(200).send("message success");
 };
 
-/** @description Close client connection */
+/**
+ * @description Close client connection then send signal to the other services to collect garbage
+ * */
 const closeConnection = (webserverConnection) => {
-  webserverConnection.on("connection", (ws) => {
-    ws.on("close", () => {
-      console.log("Connection closed");
+  webserverConnection.on("connection", (request, incomingRequest) => {
+    request.on("close", async () => {
+      const userId = getUserId(incomingRequest);
+      console.log(`${userId} closed connection`);
+      const request = makeRequest("DELETE")({
+        "Content-Type": "application/json",
+      })({ userId, serviceAddress });
+      await fetch(userMappingServiceURL + "/delete", request);
     });
   });
+};
+
+const getUserId = (incomingRequest) =>
+  querystring.parse(incomingRequest.url.slice(1)).user;
+
+const makeRequest = (method) => (headers) => (body) => {
+  return {
+    method,
+    headers,
+    body: JSON.stringify(body),
+  };
 };
